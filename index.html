@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTM FIFA PRO | Live & Secure</title>
+    <title>VTM FIFA PRO | Live Tournament</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -11,85 +11,88 @@
     <style>
         [x-cloak] { display: none !important; }
         body { background-color: #0F172A; color: #F8FAFC; font-family: 'Inter', sans-serif; }
+        .bracket-column { min-width: 250px; flex: 1; }
         .match-box { background: #1E293B; border: 1px solid #334155; border-radius: 12px; }
-        .btn-action { background: #334155; padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .winner-text { color: #818CF8; font-weight: 900; }
     </style>
 </head>
 <body x-data="fifaApp()" x-init="init()">
 
     <div class="p-4 md:p-8">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div>
-                <h1 class="text-4xl font-black text-indigo-500 italic">VTM FIFA LIVE</h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Cloud Sync: <span class="text-green-500" x-text="syncStatus"></span></p>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div class="text-center md:text-left">
+                <h1 class="text-5xl font-black text-indigo-500 tracking-tighter italic">VTM FIFA LIVE</h1>
+                <p class="text-slate-500 font-bold uppercase text-[10px] tracking-[0.4em]">Cloud Gesynchroniseerd</p>
             </div>
-            
-            <div class="flex gap-2">
-                <button @click="saveBackup" class="btn-action bg-blue-600/20 text-blue-400 border border-blue-600/30">💾 Maak Back-up</button>
-                <button @click="loadBackup" class="btn-action bg-amber-600/20 text-amber-400 border border-amber-600/30">📂 Herstel Laatste</button>
-                <button @click="resetTournament" class="btn-action bg-red-600/20 text-red-400 border border-red-600/30">Reset</button>
+            <div class="flex gap-3">
+                <button @click="fillRandomPouleScores" x-show="matchesByRound.length > 0 && koRounds.length === 0" class="bg-indigo-500/10 text-indigo-400 px-5 py-2 rounded-full text-xs font-black border border-indigo-500/20 uppercase">🎲 Sim</button>
+                <button @click="saveBackup" class="bg-blue-500/10 text-blue-400 px-5 py-2 rounded-full text-xs font-black border border-blue-500/20 uppercase">💾 Sla voortgang op</button>
+                <button @click="loadBackup" class="bg-amber-500/10 text-amber-400 px-5 py-2 rounded-full text-xs font-black border border-amber-500/20 uppercase">📂 Laad voortgang</button>
+                <button @click="resetTournament" class="bg-red-500/10 text-red-400 px-5 py-2 rounded-full text-xs font-black border border-red-500/20 uppercase">Reset</button>
             </div>
         </header>
 
         <div x-show="koRounds.length === 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <aside class="lg:col-span-4 space-y-4">
-                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                    <h2 class="font-black mb-4 uppercase text-sm">Spelers Toevoegen</h2>
+            <aside class="lg:col-span-4 space-y-6">
+                <section class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-xl font-black mb-4">👥 Spelers (<span x-text="players.length"></span>)</h2>
                     <div class="flex gap-2">
-                        <input type="text" x-model="newPlayer" @keyup.enter="addPlayer" placeholder="Naam..." class="flex-1 bg-slate-800 rounded-xl px-4 py-2 border-none outline-none focus:ring-1 focus:ring-indigo-500">
-                        <button @click="addPlayer" class="bg-indigo-600 px-4 rounded-xl font-bold">+</button>
+                        <input type="text" x-model="newPlayer" @keyup.enter="addPlayer" placeholder="Naam..." class="flex-1 bg-slate-800 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button @click="addPlayer" class="bg-indigo-600 px-5 rounded-xl font-bold">+</button>
                     </div>
-                </div>
+                </section>
 
-                <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                    <h2 class="font-black mb-4 uppercase text-sm italic text-indigo-400">Poule Stand</h2>
+                <section class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-xl font-black mb-4 italic text-indigo-400">📊 Stand</h2>
                     <div class="space-y-2">
                         <template x-for="(s, i) in standings" :key="s.name">
-                            <div class="flex justify-between p-2 rounded-lg bg-slate-800/50 border border-slate-700 text-sm">
-                                <span><span x-text="i+1"></span>. <span x-text="s.name"></span></span>
-                                <span class="font-black text-indigo-400" x-text="s.points"></span>
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-slate-800/50 border border-slate-800">
+                                <span class="text-sm font-bold"><span x-text="i+1"></span>. <span x-text="s.name"></span></span>
+                                <span class="text-lg font-black text-indigo-400" x-text="s.points"></span>
                             </div>
                         </template>
                     </div>
-                </div>
+                </section>
             </aside>
 
-            <main class="lg:col-span-8 bg-slate-900 p-6 rounded-3xl border border-slate-800">
-                <div class="flex justify-between mb-6">
-                    <h2 class="text-xl font-black uppercase italic">Speelschema</h2>
-                    <button @click="generateStrictSchema" class="bg-indigo-600 px-6 py-2 rounded-xl font-bold text-xs">GENEREER</button>
+            <main class="lg:col-span-8 bg-slate-900 p-8 rounded-3xl border border-slate-800">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-black uppercase">Poule Fase</h2>
+                    <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-bold">GENEREER</button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <template x-for="(round, rIdx) in matchesByRound" :key="rIdx">
                         <template x-for="(m, mIdx) in round" :key="m.id">
-                            <div class="match-box p-3 flex justify-between items-center">
-                                <span class="text-[10px] font-bold w-1/3 truncate" x-text="m.p1 + ' & ' + m.p2"></span>
-                                <div class="flex gap-2 bg-slate-950 px-3 py-1 rounded-lg cursor-pointer border border-slate-700" @click="openScoreModal(m)">
-                                    <span class="font-black text-indigo-400" x-text="m.s1 ?? '-'"></span>
-                                    <span class="font-black text-indigo-400" x-text="m.s2 ?? '-'"></span>
+                            <div class="match-box p-4 flex flex-col gap-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold" x-text="m.p1 + ' & ' + m.p2"></span>
+                                    <div class="flex gap-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 cursor-pointer" @click="openScoreModal(m, 'poule')">
+                                        <span class="font-black text-xl text-indigo-400" x-text="m.s1 ?? '-'"></span>
+                                        <span class="font-black text-xl text-indigo-400" x-text="m.s2 ?? '-'"></span>
+                                    </div>
+                                    <span class="text-xs font-bold text-right" x-text="m.p3 + ' & ' + m.p4"></span>
                                 </div>
-                                <span class="text-[10px] font-bold w-1/3 text-right truncate" x-text="m.p3 + ' & ' + m.p4"></span>
                             </div>
                         </template>
                     </template>
                 </div>
-                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-8 bg-indigo-600 py-3 rounded-xl font-black italic">START BEST 16 FINALES</button>
+                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-10 bg-indigo-600 py-4 rounded-2xl font-black">🏆 NAAR FINALES</button>
             </main>
         </div>
 
-        <div x-show="koRounds.length > 0" x-cloak class="flex gap-6 overflow-x-auto pb-10">
+        <div x-show="koRounds.length > 0" x-cloak class="flex gap-4 overflow-x-auto pb-10">
             <template x-for="(round, rIdx) in koRounds" :key="rIdx">
-                <div class="min-w-[240px] flex flex-col gap-6">
-                    <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase bg-slate-900 py-2 rounded-lg" x-text="round.name"></h3>
+                <div class="bracket-column flex flex-col gap-8">
+                    <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase tracking-widest" x-text="round.name"></h3>
                     <template x-for="(m, mIdx) in round.matches" :key="mIdx">
                         <div class="match-box p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-bold" x-text="m.p1"></span>
-                                <input type="number" x-model.number="m.s1" @change="advanceWinner(rIdx, mIdx)" class="w-10 bg-slate-950 text-center rounded border border-slate-700 text-sm py-1">
+                                <span class="text-sm font-bold" :class="m.s1 > m.s2 ? 'winner-text' : ''" x-text="m.p1"></span>
+                                <input type="number" x-model.number="m.s1" @input="advanceWinner(rIdx, mIdx)" class="w-10 bg-slate-950 text-center rounded border border-slate-700 font-bold">
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold" x-text="m.p2"></span>
-                                <input type="number" x-model.number="m.s2" @change="advanceWinner(rIdx, mIdx)" class="w-10 bg-slate-950 text-center rounded border border-slate-700 text-sm py-1">
+                                <span class="text-sm font-bold" :class="m.s2 > m.s1 ? 'winner-text' : ''" x-text="m.p2"></span>
+                                <input type="number" x-model.number="m.s2" @input="advanceWinner(rIdx, mIdx)" class="w-10 bg-slate-950 text-center rounded border border-slate-700 font-bold">
                             </div>
                         </div>
                     </template>
@@ -98,18 +101,19 @@
         </div>
 
         <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md">
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-sm w-full">
-                <div class="flex items-center justify-around mb-8">
-                    <input type="number" x-model.number="modalS1" class="w-16 h-16 bg-slate-800 rounded-xl text-center text-3xl font-black outline-none border-2 border-indigo-500">
+            <div class="bg-slate-900 border border-slate-800 rounded-[2rem] p-10 max-w-sm w-full">
+                <div class="flex items-center justify-around mb-10">
+                    <input type="number" x-model.number="modalS1" class="w-16 h-16 bg-slate-800 rounded-2xl text-center text-3xl font-black outline-none border-2 border-indigo-500">
                     <span class="text-slate-700 font-black text-xl">/</span>
-                    <input type="number" x-model.number="modalS2" class="w-16 h-16 bg-slate-800 rounded-xl text-center text-3xl font-black outline-none border-2 border-indigo-500">
+                    <input type="number" x-model.number="modalS2" class="w-16 h-16 bg-slate-800 rounded-2xl text-center text-3xl font-black outline-none border-2 border-indigo-500">
                 </div>
-                <button @click="saveScore" class="w-full bg-indigo-600 py-4 rounded-xl font-black">OPSLAAN</button>
+                <button @click="saveScore" class="w-full bg-indigo-600 py-4 rounded-2xl font-black">OPSLAAN</button>
             </div>
         </div>
     </div>
 
     <script>
+        // FIREBASE CONFIGURATIE (Gebaseerd op jouw gegevens)
         const firebaseConfig = {
             apiKey: "AIzaSyCzDlMOHae7At0e2JgEjwVhO87kAgo_nKw",
             authDomain: "fifa-app-50969.firebaseapp.com",
@@ -127,63 +131,32 @@
             return {
                 players: [], matchesByRound: [], koRounds: [], standings: [],
                 showModal: false, activeMatch: null, modalS1: 0, modalS2: 0,
-                newPlayer: '', playsPerPlayer: 6, syncStatus: 'OK',
+                newPlayer: '', playsPerPlayer: 6,
 
                 init() {
-                    // LIVE SYNC: Haal data op uit de hoofd-node 'tournament'
+                    // Luister live naar database veranderingen
                     db.ref('tournament').on('value', (snapshot) => {
                         const data = snapshot.val() || {};
                         this.players = data.players || [];
                         this.matchesByRound = data.matchesByRound || [];
                         this.koRounds = data.koRounds || [];
-                        this.updateStandings(false);
+                        this.updateStandings(false); // Update UI zonder opnieuw te saven
                     });
                 },
 
-                // Automatisch opslaan naar de hoofd-node
                 sync() {
-                    this.syncStatus = 'Opslaan...';
                     db.ref('tournament').set({
                         players: this.players,
                         matchesByRound: this.matchesByRound,
                         koRounds: this.koRounds
-                    }).then(() => { this.syncStatus = 'OK'; })
-                      .catch(() => { this.syncStatus = 'Fout!'; });
-                },
-
-                // Handmatige BACK-UP functie
-                saveBackup() {
-                    const backupData = {
-                        players: this.players,
-                        matchesByRound: this.matchesByRound,
-                        koRounds: this.koRounds,
-                        timestamp: new Date().toLocaleString()
-                    };
-                    // Sla op in een aparte node 'backups'
-                    db.ref('backups').set(backupData);
-                    alert("Handmatige back-up opgeslagen in de cloud!");
-                },
-
-                // Herstel functie
-                loadBackup() {
-                    if(confirm("Weet je zeker dat je de laatste back-up wilt herstellen? Dit overschrijft de huidige stand.")) {
-                        db.ref('backups').once('value', (snapshot) => {
-                            const data = snapshot.val();
-                            if(data) {
-                                db.ref('tournament').set(data);
-                                alert("Back-up succesvol hersteld!");
-                            } else {
-                                alert("Geen back-up gevonden.");
-                            }
-                        });
-                    }
+                    });
                 },
 
                 addPlayer() { if(this.newPlayer) { this.players.push(this.newPlayer); this.newPlayer=''; this.sync(); }},
                 
                 generateStrictSchema() {
-                    // (Logica blijft hetzelfde, we voegen alleen sync toe aan het eind)
-                    // ... [Schenk hier aandacht aan je bestaande generator logica]
+                    // ... (logica voor unieke partners/rondes uit vorige stap)
+                    // Na genereren:
                     this.sync();
                 },
 
@@ -209,22 +182,43 @@
                         let nextMatch = this.koRounds[rIdx + 1].matches[Math.floor(mIdx / 2)];
                         if (mIdx % 2 === 0) nextMatch.p1 = winner; else nextMatch.p2 = winner;
                     }
-                    this.sync(); // Auto-save na bracket aanpassing
+                    this.sync();
                 },
 
                 openScoreModal(m) { this.activeMatch = m; this.modalS1 = m.s1 ?? 0; this.modalS2 = m.s2 ?? 0; this.showModal = true; },
-                saveScore() { 
-                    this.activeMatch.s1 = this.modalS1; 
-                    this.activeMatch.s2 = this.modalS2; 
-                    this.showModal = false; 
-                    this.updateStandings(); // Dit roept sync() aan
+                saveScore() { this.activeMatch.s1 = this.modalS1; this.activeMatch.s2 = this.modalS2; this.showModal = false; this.updateStandings(); },
+
+                saveBackup() {
+                    const backupData = {
+                        players: this.players,
+                        matchesByRound: this.matchesByRound,
+                        koRounds: this.koRounds,
+                        savedAt: new Date().toISOString()
+                    };
+                    // Opslaan in Firebase backups node
+                    db.ref('backups').set(backupData)
+                      .then(() => alert('Back-up succesvol opgeslagen.'))
+                      .catch(err => alert('Fout bij opslaan backup: ' + err.message));
                 },
 
-                resetTournament() { if(confirm("Echt alles wissen?")) { db.ref('tournament').set(null); location.reload(); }},
-                startKnockout() { 
-                    // ... [Bestaande startKnockout logica]
-                    this.sync(); 
-                }
+                loadBackup() {
+                    if (!confirm('Wil je de laatst opgeslagen voortgang laden? Huidige data wordt overschreven.')) return;
+                    db.ref('backups').once('value').then(snapshot => {
+                        const data = snapshot.val();
+                        if (!data) {
+                            alert('Geen back-up gevonden.');
+                            return;
+                        }
+                        this.players = data.players || [];
+                        this.matchesByRound = data.matchesByRound || [];
+                        this.koRounds = data.koRounds || [];
+                        this.updateStandings(false);
+                        alert('Back-up is geladen.');
+                    }).catch(err => alert('Fout bij laden backup: ' + err.message));
+                },
+
+                resetTournament() { if(confirm("Resetten?")) { db.ref('tournament').set(null); location.reload(); }},
+                loadDummies() { this.players = ["Kylian", "Erling", "Lionel", "Cristiano", "Kevin", "Virgil", "Jude", "Bukayo", "Vinicius", "Pedri", "Harry", "Mo", "Luka", "Robert", "Bruno", "Antoine"]; this.sync(); }
             }
         }
     </script>
