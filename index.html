@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTM FIFA | Pro Tournament Bracket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        body { background-color: #0F172A; color: #F8FAFC; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .bracket-column { min-width: 250px; flex: 1; }
+        .match-box { background: #1E293B; border: 1px solid #334155; border-radius: 12px; transition: all 0.3s; }
+        .match-box:hover { border-color: #6366F1; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+        .winner-text { color: #818CF8; font-weight: 900; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body x-data="fifaApp()" x-init="init()">
+
+    <div class="p-4 md:p-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div class="text-center md:text-left">
+                <h1 class="text-5xl font-black text-indigo-500 tracking-tighter italic">VTM FIFA PRO</h1>
+                <p class="text-slate-500 font-bold uppercase text-[10px] tracking-[0.4em]">Poule Duo's ➔ Individuele Bracket</p>
+            </div>
+            <div class="flex gap-3">
+                <button @click="fillRandomPouleScores" x-show="matchesByRound.length > 0 && koRounds.length === 0" class="bg-indigo-500/10 text-indigo-400 px-5 py-2 rounded-full text-xs font-black border border-indigo-500/20 uppercase">🎲 Poule Sim</button>
+                <button @click="resetTournament" class="bg-red-500/10 text-red-400 px-5 py-2 rounded-full text-xs font-black border border-red-500/20 uppercase">Reset</button>
+            </div>
+        </header>
+
+        <div x-show="koRounds.length === 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <aside class="lg:col-span-4 space-y-6">
+                <section class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-xl font-black mb-4">👥 Spelers (<span x-text="players.length"></span>)</h2>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" x-model="newPlayer" @keyup.enter="addPlayer" placeholder="Naam..." class="flex-1 bg-slate-800 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button @click="addPlayer" class="bg-indigo-600 px-5 rounded-xl font-bold">+</button>
+                    </div>
+                    <button @click="loadDummies" class="w-full text-[10px] py-2 text-slate-500 font-black tracking-widest uppercase mb-4 italic">Snelvullen (16 spelers)</button>
+                    <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                        <template x-for="(p, i) in players" :key="i">
+                            <div class="bg-slate-800 p-2 px-3 rounded-lg text-xs flex justify-between">
+                                <span x-text="p"></span>
+                                <button @click="removePlayer(i)" class="text-slate-500">×</button>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+                    <h2 class="text-xl font-black mb-4 italic text-indigo-400">📊 Tussenstand</h2>
+                    <div class="space-y-2">
+                        <template x-for="(s, i) in standings" :key="s.name">
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-slate-800/50 border border-slate-800">
+                                <span class="text-sm font-bold"><span class="text-slate-600 mr-2" x-text="i+1"></span> <span x-text="s.name"></span></span>
+                                <span class="text-lg font-black text-indigo-400" x-text="s.points"></span>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+            </aside>
+
+            <main class="lg:col-span-8 bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-black italic">🗓️ POULE</h2>
+                    <div class="flex items-center gap-4 bg-slate-800 p-3 rounded-2xl">
+                        <input type="number" x-model.number="playsPerPlayer" class="w-12 bg-transparent text-xl font-black text-center outline-none">
+                        <button @click="generateStrictSchema" class="bg-indigo-600 px-6 py-2 rounded-xl font-bold">START</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template x-for="(round, rIdx) in matchesByRound" :key="rIdx">
+                        <template x-for="(m, mIdx) in round" :key="m.id">
+                            <div class="match-box p-4 flex flex-col gap-2">
+                                <div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase"><span>Ronde <span x-text="rIdx+1"></span></span></div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold w-1/3" x-text="m.p1 + ' & ' + m.p2"></span>
+                                    <div class="flex gap-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 cursor-pointer" @click="openScoreModal(m, 'poule')">
+                                        <span class="font-black text-xl text-indigo-400" x-text="m.s1 ?? '-'"></span>
+                                        <span class="text-slate-700">:</span>
+                                        <span class="font-black text-xl text-indigo-400" x-text="m.s2 ?? '-'"></span>
+                                    </div>
+                                    <span class="text-xs font-bold w-1/3 text-right" x-text="m.p3 + ' & ' + m.p4"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-10 bg-indigo-600 py-4 rounded-2xl font-black text-xl shadow-lg hover:scale-[1.02] transition">🏆 GENEREER BRACKET</button>
+            </main>
+        </div>
+
+        <div x-show="koRounds.length > 0" x-cloak class="mt-4">
+            <div class="flex flex-col md:flex-row gap-4 overflow-x-auto pb-10">
+                <template x-for="(round, rIdx) in koRounds" :key="rIdx">
+                    <div class="bracket-column flex flex-col justify-around gap-8">
+                        <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] bg-slate-900 py-2 rounded-lg border border-slate-800" x-text="round.name"></h3>
+                        <div class="flex flex-col justify-around flex-1 gap-4">
+                            <template x-for="(m, mIdx) in round.matches" :key="mIdx">
+                                <div class="match-box p-4 relative group">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-sm font-bold truncate pr-2" :class="isWinner(m, 1) ? 'winner-text' : 'text-slate-400'" x-text="m.p1"></span>
+                                        <input type="number" x-model.number="m.s1" @input="advanceWinner(rIdx, mIdx)" class="w-10 bg-slate-950 text-center rounded border border-slate-800 font-black py-1 focus:border-indigo-500 outline-none">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-bold truncate pr-2" :class="isWinner(m, 2) ? 'winner-text' : 'text-slate-400'" x-text="m.p2"></span>
+                                        <input type="number" x-model.number="m.s2" @input="advanceWinner(rIdx, mIdx)" class="w-10 bg-slate-950 text-center rounded border border-slate-800 font-black py-1 focus:border-indigo-500 outline-none">
+                                    </div>
+                                    <div x-show="m.p1 === 'BYE' || m.p2 === 'BYE'" class="absolute -top-2 -right-2 bg-green-500 text-[8px] px-2 py-0.5 rounded-full font-black">BYE</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md">
+            <div class="bg-slate-900 border border-slate-800 rounded-[2rem] p-10 max-w-sm w-full shadow-2xl">
+                <div class="flex items-center justify-around mb-10">
+                    <div class="text-center font-bold text-sm">
+                        <p x-text="activeMatch?.p1"></p><p x-text="activeMatch?.p2"></p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" x-model.number="modalS1" class="w-16 h-16 bg-slate-800 rounded-2xl text-center text-3xl font-black outline-none border-2 border-transparent focus:border-indigo-500">
+                        <span class="text-slate-700 font-black text-xl">/</span>
+                        <input type="number" x-model.number="modalS2" class="w-16 h-16 bg-slate-800 rounded-2xl text-center text-3xl font-black outline-none border-2 border-transparent focus:border-indigo-500">
+                    </div>
+                    <div class="text-center font-bold text-sm text-slate-400">
+                        <p x-text="activeMatch?.p3"></p><p x-text="activeMatch?.p4"></p>
+                    </div>
+                </div>
+                <button @click="saveScore" class="w-full bg-indigo-600 py-4 rounded-2xl font-black uppercase tracking-widest transition hover:bg-indigo-500">Opslaan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fifaApp() {
+            return {
+                players: [], newPlayer: '', playsPerPlayer: 6, matchesByRound: [], koRounds: [], standings: [],
+                showModal: false, activeMatch: null, modalS1: 0, modalS2: 0,
+
+                init() {
+                    const saved = JSON.parse(localStorage.getItem('fifa_vtm_v6') || '{"players":[], "matchesByRound":[], "koRounds":[]}');
+                    this.players = saved.players; this.matchesByRound = saved.matchesByRound; this.koRounds = saved.koRounds;
+                    this.updateStandings();
+                },
+
+                save() { localStorage.setItem('fifa_vtm_v6', JSON.stringify({players: this.players, matchesByRound: this.matchesByRound, koRounds: this.koRounds})); },
+
+                addPlayer() { if (this.newPlayer.trim()) { this.players.push(this.newPlayer.trim()); this.newPlayer = ''; this.updateStandings(); }},
+                removePlayer(i) { this.players.splice(i, 1); this.updateStandings(); },
+                loadDummies() { this.players = ["Kylian", "Erling", "Lionel", "Cristiano", "Kevin", "Virgil", "Jude", "Bukayo", "Vinicius", "Pedri", "Harry", "Mo", "Luka", "Robert", "Bruno", "Antoine"]; this.updateStandings(); },
+
+                generateStrictSchema() {
+                    if (this.players.length < 4) return alert("Minimaal 4 spelers!");
+                    this.matchesByRound = []; this.koRounds = [];
+                    let partnerHistory = {}; let playCount = {}; this.players.forEach(p => { partnerHistory[p] = new Set(); playCount[p] = 0; });
+                    let safety = 0;
+                    while (Object.values(playCount).some(c => c < this.playsPerPlayer) && safety < 300) {
+                        safety++; let roundMatches = []; let inRound = new Set();
+                        for (let m = 0; m < 2; m++) {
+                            let pool = this.players.filter(p => !inRound.has(p) && playCount[p] < this.playsPerPlayer).sort(() => Math.random() - 0.5);
+                            if (pool.length < 4) break;
+                            let p1 = pool[0]; let p2 = pool.slice(1).find(c => !partnerHistory[p1].has(c)) || pool[1];
+                            let opps = pool.filter(p => p !== p1 && p !== p2); if (opps.length < 2) break;
+                            let p3 = opps[0], p4 = opps[1];
+                            [p1,p2,p3,p4].forEach(p => { inRound.add(p); playCount[p]++; });
+                            partnerHistory[p1].add(p2); partnerHistory[p2].add(p1);
+                            roundMatches.push({ id: Math.random(), p1, p2, p3, p4, s1: null, s2: null });
+                        }
+                        if (roundMatches.length > 0) this.matchesByRound.push(roundMatches);
+                    }
+                    this.updateStandings();
+                },
+
+                updateStandings() {
+                    let stats = {}; this.players.forEach(p => stats[p] = { name: p, points: 0, played: 0 });
+                    this.matchesByRound.forEach(r => r.forEach(m => {
+                        if (m.s1 !== null) {
+                            [m.p1, m.p2, m.p3, m.p4].forEach(p => stats[p].played++);
+                            if (m.s1 > m.s2) { stats[m.p1].points += 3; stats[m.p2].points += 3; }
+                            else if (m.s2 > m.s1) { stats[m.p3].points += 3; stats[m.p4].points += 3; }
+                            else { [m.p1,m.p2,m.p3,m.p4].forEach(p => stats[p].points += 1); }
+                        }
+                    }));
+                    this.standings = Object.values(stats).sort((a,b) => b.points - a.points);
+                    this.save();
+                },
+
+                startKnockout() {
+                    const top16 = this.standings.slice(0, 16).map(s => s.name);
+                    let rounds = [
+                        { name: "Achtste Finale", matches: [] },
+                        { name: "Kwartfinale", matches: Array.from({length: 4}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
+                        { name: "Halve Finale", matches: Array.from({length: 2}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
+                        { name: "Finale", matches: Array.from({length: 1}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) }
+                    ];
+                    // Seeding 1-16, 2-15...
+                    for(let i=0; i<8; i++) {
+                        let p1 = top16[i] || 'TBD'; let p2 = top16[15-i] || 'BYE';
+                        rounds[0].matches.push({ p1, p2, s1: p2 === 'BYE' ? 1 : null, s2: p2 === 'BYE' ? 0 : null });
+                    }
+                    this.koRounds = rounds;
+                    this.koRounds[0].matches.forEach((m, i) => this.advanceWinner(0, i)); // Verwerk BYEs direct
+                    this.save();
+                },
+
+                advanceWinner(rIdx, mIdx) {
+                    let m = this.koRounds[rIdx].matches[mIdx];
+                    if (m.s1 === null || m.s2 === null || m.s1 === m.s2) return;
+                    let winner = m.s1 > m.s2 ? m.p1 : m.p2;
+                    if (this.koRounds[rIdx + 1]) {
+                        let nextMatch = this.koRounds[rIdx + 1].matches[Math.floor(mIdx / 2)];
+                        if (mIdx % 2 === 0) nextMatch.p1 = winner; else nextMatch.p2 = winner;
+                    }
+                    this.save();
+                },
+
+                isWinner(m, pIdx) {
+                    if (m.s1 === null || m.s2 === null) return false;
+                    return pIdx === 1 ? m.s1 > m.s2 : m.s2 > m.s1;
+                },
+
+                openScoreModal(m) { this.activeMatch = m; this.modalS1 = m.s1 ?? 0; this.modalS2 = m.s2 ?? 0; this.showModal = true; },
+                saveScore() { this.activeMatch.s1 = this.modalS1; this.activeMatch.s2 = this.modalS2; this.showModal = false; this.updateStandings(); },
+                fillRandomPouleScores() { this.matchesByRound.forEach(r => r.forEach(m => { m.s1 = Math.floor(Math.random()*4); m.s2 = Math.floor(Math.random()*4); })); this.updateStandings(); },
+                resetTournament() { if (confirm("Reset?")) { localStorage.clear(); location.reload(); } }
+            }
+        }
+    </script>
+</body>
+</html>
