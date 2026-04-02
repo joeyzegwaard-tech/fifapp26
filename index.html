@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTM FIFA Ultimate | Duo-Poule & Live Bracket</title>
+    <title>VTM FIFA Ultimate | Local Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         [x-cloak] { display: none !important; }
         body { background-color: #0F172A; color: #F8FAFC; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .bracket-col { min-width: 260px; flex: 1; }
         .card-dark { background: #1E293B; border: 1px solid #334155; border-radius: 1.5rem; }
         .match-card { background: #0F172A; border: 1px solid #334155; border-radius: 1rem; transition: all 0.2s; }
-        .match-card:hover { border-color: #6366F1; shadow: 0 0 15px rgba(99,102,241,0.2); }
-        .winner { color: #818CF8 !important; font-weight: 900 !important; }
+        .match-card:hover { border-color: #6366F1; box-shadow: 0 0 15px rgba(99,102,241,0.2); }
+        .bracket-col { min-width: 260px; flex: 1; }
+        .winner { color: #818CF8 !important; font-weight: 900 !important; text-decoration: underline; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
@@ -25,15 +23,12 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div class="text-center md:text-left">
                 <h1 class="text-5xl font-extrabold text-indigo-500 italic tracking-tighter">VTM FIFA ULTIMATE</h1>
-                <div class="flex items-center gap-3 mt-2 justify-center md:justify-start">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cloud Status:</span>
-                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded" :class="syncStatus === 'OK' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'" x-text="syncStatus"></span>
-                </div>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">Local Storage Edition • Vercel Ready</p>
             </div>
             <div class="flex flex-wrap justify-center gap-2">
                 <button @click="fillRandomPouleScores" x-show="matchesByRound.length > 0 && koRounds.length === 0" class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[10px] font-black uppercase hover:bg-indigo-500/20 transition">🎲 Poule Sim</button>
-                <button @click="saveBackup" class="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase hover:bg-blue-500/20 transition">💾 Back-up</button>
-                <button @click="loadBackup" class="px-4 py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase hover:bg-amber-500/20 transition">📂 Herstel</button>
+                <button @click="exportData" class="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase hover:bg-blue-500/20 transition">💾 Export</button>
+                <button @click="importData" class="px-4 py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase hover:bg-amber-500/20 transition">📂 Import</button>
                 <button @click="resetTournament" class="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[10px] font-black uppercase hover:bg-red-500/20 transition">Reset</button>
             </div>
         </header>
@@ -41,15 +36,12 @@
         <div x-show="koRounds.length === 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <aside class="lg:col-span-4 space-y-6">
                 <section class="card-dark p-6 shadow-2xl">
-                    <h2 class="text-xl font-black mb-4 flex justify-between uppercase italic">
-                        <span>Spelers</span>
-                        <span class="text-indigo-500" x-text="players.length"></span>
-                    </h2>
+                    <h2 class="text-xl font-black mb-4 uppercase italic">👥 Spelers (<span x-text="players.length"></span>)</h2>
                     <div class="flex gap-2 mb-4">
                         <input type="text" x-model="newPlayer" @keyup.enter="addPlayer" placeholder="Naam speler..." class="flex-1 bg-slate-900 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                         <button @click="addPlayer" class="bg-indigo-600 px-6 rounded-xl font-black">+</button>
                     </div>
-                    <button @click="loadDummies" class="w-full text-[10px] py-2 text-slate-500 font-black tracking-widest uppercase hover:text-slate-300 transition">Snelvullen (12 of 16)</button>
+                    <button @click="loadDummies" class="w-full text-[10px] py-2 text-slate-500 font-black tracking-widest uppercase hover:text-slate-300 transition">Snelvullen (16 spelers)</button>
                     <div class="grid grid-cols-2 gap-2 mt-4 max-h-48 overflow-y-auto pr-2">
                         <template x-for="(p, i) in players" :key="i">
                             <div class="bg-slate-900 p-2 px-3 rounded-lg flex justify-between items-center text-xs border border-slate-800">
@@ -61,7 +53,7 @@
                 </section>
 
                 <section class="card-dark p-6 border-t-4 border-indigo-600 shadow-2xl">
-                    <h2 class="text-xl font-black mb-6 italic text-indigo-400 uppercase tracking-tighter">Klassement</h2>
+                    <h2 class="text-xl font-black mb-6 italic text-indigo-400 uppercase">📊 Poule Stand</h2>
                     <div class="space-y-2">
                         <template x-for="(s, i) in standings" :key="s.name">
                             <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900 border border-slate-800 transition hover:bg-slate-800">
@@ -79,15 +71,15 @@
                 </section>
             </aside>
 
-            <main class="lg:col-span-8 card-dark p-8 shadow-2xl">
+            <main class="lg:col-span-8 card-dark p-6 md:p-8 shadow-2xl">
                 <div class="flex flex-wrap justify-between items-center mb-10 gap-4">
-                    <h2 class="text-3xl font-black italic uppercase tracking-tighter">Speelschema</h2>
-                    <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                        <div class="flex flex-col items-center">
-                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Potten p.p.</span>
-                            <input type="number" x-model.number="playsPerPlayer" class="w-12 bg-transparent text-xl font-black text-center outline-none text-indigo-400">
+                    <h2 class="text-3xl font-black italic uppercase">🗓️ Speelschema</h2>
+                    <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Wedstrijden p.p.</span>
+                            <input type="number" x-model.number="playsPerPlayer" class="w-12 bg-transparent text-xl font-black outline-none text-indigo-400">
                         </div>
-                        <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">Genereer</button>
+                        <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-black uppercase text-xs hover:bg-indigo-500 transition">Start Poule</button>
                     </div>
                 </div>
 
@@ -99,17 +91,15 @@
                                 <template x-for="(m, mIdx) in round" :key="m.id">
                                     <div class="match-card p-5">
                                         <div class="flex items-center justify-between gap-2 mb-4">
-                                            <div class="w-2/5 text-center px-1">
-                                                <p class="text-[11px] font-black text-slate-300 leading-tight" x-text="m.p1"></p>
-                                                <p class="text-[11px] font-black text-slate-300 leading-tight" x-text="m.p2"></p>
+                                            <div class="w-2/5 text-center text-[11px] font-black leading-tight text-slate-300">
+                                                <p x-text="m.p1"></p><p x-text="m.p2"></p>
                                             </div>
-                                            <div class="flex gap-2 bg-slate-900 px-4 py-1.5 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500 transition" @click="openScoreModal(m, 'poule')">
+                                            <div class="flex gap-2 bg-slate-900 px-4 py-1.5 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500 transition" @click="openScoreModal(m)">
                                                 <span class="text-2xl font-black text-indigo-500" x-text="m.s1 ?? '-'"></span>
                                                 <span class="text-2xl font-black text-indigo-500" x-text="m.s2 ?? '-'"></span>
                                             </div>
-                                            <div class="w-2/5 text-center px-1 border-l border-slate-800">
-                                                <p class="text-[11px] font-black text-slate-500 leading-tight" x-text="m.p3"></p>
-                                                <p class="text-[11px] font-black text-slate-500 leading-tight" x-text="m.p4"></p>
+                                            <div class="w-2/5 text-center text-[11px] font-black leading-tight text-slate-500 border-l border-slate-800">
+                                                <p x-text="m.p3"></p><p x-text="m.p4"></p>
                                             </div>
                                         </div>
                                     </div>
@@ -118,8 +108,7 @@
                         </div>
                     </template>
                 </div>
-
-                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-12 bg-indigo-600 py-5 rounded-2xl font-black text-xl hover:bg-indigo-500 transition shadow-2xl shadow-indigo-500/20 uppercase italic tracking-widest">🏆 Start Bracket (Best 16)</button>
+                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-12 bg-indigo-600 py-5 rounded-2xl font-black text-xl hover:bg-indigo-500 transition shadow-2xl uppercase italic tracking-widest">🏆 Naar Best 16 Bracket</button>
             </main>
         </div>
 
@@ -129,18 +118,18 @@
                     <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] bg-slate-900 py-3 rounded-xl border border-slate-800" x-text="round.name"></h3>
                     <div class="flex flex-col justify-around flex-1 gap-6">
                         <template x-for="(m, mIdx) in round.matches" :key="mIdx">
-                            <div class="card-dark p-5 relative border-l-4 border-l-indigo-600 shadow-xl group">
+                            <div class="card-dark p-5 relative border-l-4 border-l-indigo-600 shadow-xl">
                                 <div class="flex flex-col gap-3">
                                     <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 1) ? 'text-indigo-400' : 'text-slate-400'" x-text="m.p1"></span>
+                                        <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 1) ? 'winner' : 'text-slate-400'" x-text="m.p1"></span>
                                         <input type="number" x-model.number="m.s1" @input="advanceWinner(rIdx, mIdx)" class="w-12 bg-slate-950 text-center rounded-lg border border-slate-700 font-black py-1.5 focus:border-indigo-500 outline-none text-indigo-400">
                                     </div>
                                     <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 2) ? 'text-indigo-400' : 'text-slate-400'" x-text="m.p2"></span>
+                                        <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 2) ? 'winner' : 'text-slate-400'" x-text="m.p2"></span>
                                         <input type="number" x-model.number="m.s2" @input="advanceWinner(rIdx, mIdx)" class="w-12 bg-slate-950 text-center rounded-lg border border-slate-700 font-black py-1.5 focus:border-indigo-500 outline-none text-indigo-400">
                                     </div>
                                 </div>
-                                <div x-show="m.p2 === 'BYE'" class="absolute -top-3 -right-2 bg-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-green-500/20">Vrijstelling</div>
+                                <div x-show="m.p2 === 'BYE'" class="absolute -top-3 -right-2 bg-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">BYE</div>
                             </div>
                         </template>
                     </div>
@@ -173,110 +162,80 @@
     </div>
 
     <script>
-        // FIREBASE INITIALISATIE
-        const firebaseConfig = {
-            apiKey: "AIzaSyCzDlMOHae7At0e2JgEjwVhO87kAgo_nKw",
-            authDomain: "fifa-app-50969.firebaseapp.com",
-            projectId: "fifa-app-50969",
-            databaseURL: "https://fifa-app-50969-default-rtdb.europe-west1.firebasedatabase.app/",
-            storageBucket: "fifa-app-50969.appspot.com",
-            messagingSenderId: "322664488842",
-            appId: "1:322664488842:web:83b298d16d265ed1b77273"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         function fifaApp() {
             return {
                 players: [], matchesByRound: [], koRounds: [], standings: [],
-                newPlayer: '', playsPerPlayer: 6, syncStatus: 'OK',
-                showModal: false, activeMatch: null, modalS1: 0, modalS2: 0,
+                newPlayer: '', playsPerPlayer: 6, showModal: false, activeMatch: null, modalS1: 0, modalS2: 0,
 
                 init() {
-                    // Real-time Cloud Sync
-                    db.ref('tournament').on('value', (snap) => {
-                        const data = snap.val() || {};
-                        this.players = data.players || [];
-                        this.matchesByRound = data.matchesByRound || [];
-                        this.koRounds = data.koRounds || [];
-                        this.updateStandings(false);
-                    });
+                    const saved = JSON.parse(localStorage.getItem('vtm_fifa_final') || '{"players":[], "matchesByRound":[], "koRounds":[]}');
+                    this.players = saved.players;
+                    this.matchesByRound = saved.matchesByRound;
+                    this.koRounds = saved.koRounds;
+                    this.updateStandings(false);
                 },
 
-                sync() {
-                    this.syncStatus = '...';
-                    db.ref('tournament').set({
+                save() {
+                    localStorage.setItem('vtm_fifa_final', JSON.stringify({
                         players: this.players,
                         matchesByRound: this.matchesByRound,
                         koRounds: this.koRounds
-                    }).then(() => this.syncStatus = 'OK');
+                    }));
                 },
 
-                saveBackup() {
-                    const b = { players: this.players, matchesByRound: this.matchesByRound, koRounds: this.koRounds };
-                    db.ref('backups').set(b).then(() => alert("Cloud back-up geslaagd!"));
-                },
+                addPlayer() { if(this.newPlayer) { this.players.push(this.newPlayer); this.newPlayer=''; this.save(); this.updateStandings(); }},
+                removePlayer(i) { this.players.splice(i, 1); this.save(); this.updateStandings(); },
+                loadDummies() { this.players = ["Kylian", "Erling", "Lionel", "Cristiano", "Kevin", "Virgil", "Jude", "Bukayo", "Vini", "Pedri", "Harry", "Mo", "Luka", "Robert", "Bruno", "Antoine"]; this.save(); this.updateStandings(); },
 
-                loadBackup() {
-                    if(confirm("Back-up terugzetten? Huidige stand vervalt.")) {
-                        db.ref('backups').once('value', (s) => s.val() ? db.ref('tournament').set(s.val()) : alert("Geen back-up gevonden"));
-                    }
-                },
-
-                addPlayer() { if(this.newPlayer && this.players.length < 24) { this.players.push(this.newPlayer); this.newPlayer=''; this.sync(); }},
-                removePlayer(i) { this.players.splice(i,1); this.sync(); },
-                loadDummies() { this.players = ["Mbappé", "Haaland", "Messi", "Ronaldo", "De Bruyne", "Van Dijk", "Bellingham", "Saka", "Vinicius", "Pedri", "Kane", "Salah", "Modric", "Lewandowski", "Fernandes", "Griezmann"]; this.sync(); },
-
-                // ULTIEME SCHEDULER: Unieke partners, unieke tegenstanders, max 2 per ronde
                 generateStrictSchema() {
                     if (this.players.length < 4) return alert("Minimaal 4 nodig!");
                     this.matchesByRound = []; this.koRounds = [];
-                    let partnerHist = {}; this.players.forEach(p => { partnerHist[p] = new Set(); });
-                    let playCounts = {}; this.players.forEach(p => playCounts[p] = 0);
-                    
+                    let partnerHist = {}; this.players.forEach(p => partnerHist[p] = new Set());
+                    let pCounts = {}; this.players.forEach(p => pCounts[p] = 0);
                     let safety = 0;
-                    while (Object.values(playCounts).some(c => c < this.playsPerPlayer) && safety < 400) {
+
+                    while (Object.values(pCounts).some(c => c < this.playsPerPlayer) && safety < 400) {
                         safety++;
                         let roundMatches = []; let inRound = new Set();
                         for (let m = 0; m < 2; m++) { // MAX 2 PER RONDE
-                            let pool = this.players.filter(p => !inRound.has(p) && playCounts[p] < this.playsPerPlayer).sort(() => Math.random() - 0.5);
+                            let pool = this.players.filter(p => !inRound.has(p) && pCounts[p] < this.playsPerPlayer).sort(() => Math.random() - 0.5);
                             if (pool.length < 4) break;
                             let p1 = pool[0];
                             let p2 = pool.slice(1).find(c => !partnerHist[p1].has(c)) || pool[1];
-                            let opps = pool.filter(p => p !== p1 && p !== p2); if (opps.length < 2) break;
+                            let opps = pool.filter(p => p !== p1 && p !== p2);
+                            if (opps.length < 2) break;
                             let p3 = opps[0], p4 = opps.slice(1).find(c => !partnerHist[p3].has(c)) || opps[1];
 
-                            [p1,p2,p3,p4].forEach(p => { inRound.add(p); playCounts[p]++; });
+                            [p1,p2,p3,p4].forEach(p => { inRound.add(p); pCounts[p]++; });
                             partnerHist[p1].add(p2); partnerHist[p2].add(p1);
                             partnerHist[p3].add(p4); partnerHist[p4].add(p3);
-                            roundMatches.push({ id: Math.random(), p1, p2, p3, p4, s1: null, s2: null });
+                            roundMatches.push({ id: Math.random().toString(36).substr(2, 9), p1, p2, p3, p4, s1: null, s2: null });
                         }
                         if (roundMatches.length > 0) this.matchesByRound.push(roundMatches);
                     }
-                    this.sync();
+                    this.updateStandings();
                 },
 
-                updateStandings(shouldSync = true) {
+                updateStandings(shouldSave = true) {
                     let stats = {}; this.players.forEach(p => stats[p] = { name: p, points: 0, played: 0 });
                     this.matchesByRound.forEach(r => r.forEach(m => {
                         if (m.s1 !== null) {
                             [m.p1, m.p2, m.p3, m.p4].forEach(p => stats[p].played++);
                             if (m.s1 > m.s2) { stats[m.p1].points += 3; stats[m.p2].points += 3; }
                             else if (m.s2 > m.s1) { stats[m.p3].points += 3; stats[m.p4].points += 3; }
-                            else { [m.p1,m.p2,m.p3,m.p4].forEach(p => stats[p].points += 1); }
+                            else { [m.p1, m.p2, m.p3, m.p4].forEach(p => stats[p].points += 1); }
                         }
                     }));
                     this.standings = Object.values(stats).sort((a,b) => b.points - a.points);
-                    if(shouldSync) this.sync();
+                    if(shouldSave) this.save();
                 },
 
                 startKnockout() {
                     const top16 = this.standings.slice(0, 16).map(s => s.name);
                     let rounds = [
-                        { name: "Achtste Finales", matches: [] },
-                        { name: "Kwartfinales", matches: Array.from({length: 4}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
-                        { name: "Halve Finales", matches: Array.from({length: 2}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
+                        { name: "Achtste Finale", matches: [] },
+                        { name: "Kwartfinale", matches: Array.from({length: 4}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
+                        { name: "Halve Finale", matches: Array.from({length: 2}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
                         { name: "Finale", matches: Array.from({length: 1}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) }
                     ];
                     for(let i=0; i<8; i++) {
@@ -284,8 +243,8 @@
                         rounds[0].matches.push({ p1, p2, s1: p2 === 'BYE' ? 1 : null, s2: p2 === 'BYE' ? 0 : null });
                     }
                     this.koRounds = rounds;
-                    this.koRounds[0].matches.forEach((m, i) => this.advanceWinner(0, i)); // Bye's verwerken
-                    this.sync();
+                    this.koRounds[0].matches.forEach((m, i) => this.advanceWinner(0, i)); // Handle BYEs
+                    this.save();
                 },
 
                 advanceWinner(rIdx, mIdx) {
@@ -296,14 +255,16 @@
                         let nextMatch = this.koRounds[rIdx + 1].matches[Math.floor(mIdx / 2)];
                         if (mIdx % 2 === 0) nextMatch.p1 = winner; else nextMatch.p2 = winner;
                     }
-                    this.sync();
+                    this.save();
                 },
 
-                isWinner(m, idx) { return (m.s1 !== null && m.s2 !== null) && (idx === 1 ? m.s1 > m.s2 : m.s2 > m.s1); },
+                isWinner(m, p) { return m.s1 !== null && m.s2 !== null && (p === 1 ? m.s1 > m.s2 : m.s2 > m.s1); },
                 openScoreModal(m) { this.activeMatch = m; this.modalS1 = m.s1 ?? 0; this.modalS2 = m.s2 ?? 0; this.showModal = true; },
                 saveScore() { this.activeMatch.s1 = this.modalS1; this.activeMatch.s2 = this.modalS2; this.showModal = false; this.updateStandings(); },
-                fillRandomPouleScores() { this.matchesByRound.forEach(r => r.forEach(m => { m.s1 = Math.floor(Math.random()*5); m.s2 = Math.floor(Math.random()*5); })); this.updateStandings(); },
-                resetTournament() { if(confirm("Volledige reset?")) { db.ref('tournament').set(null); location.reload(); }}
+                fillRandomPouleScores() { this.matchesByRound.forEach(r => r.forEach(m => { m.s1 = Math.floor(Math.random()*4); m.s2 = Math.floor(Math.random()*4); })); this.updateStandings(); },
+                resetTournament() { if(confirm("Echt alles wissen?")) { localStorage.clear(); location.reload(); }},
+                exportData() { prompt("Kopieer deze data voor export:", localStorage.getItem('vtm_fifa_final')); },
+                importData() { const d = prompt("Plak de geëxporteerde data hier:"); if(d) { localStorage.setItem('vtm_fifa_final', d); location.reload(); }}
             }
         }
     </script>
