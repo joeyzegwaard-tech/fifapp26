@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTM FIFA Ultimate | Local Edition</title>
+    <title>VTM FIFA Ultimate | Pro Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
@@ -23,7 +23,7 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div class="text-center md:text-left">
                 <h1 class="text-5xl font-extrabold text-indigo-500 italic tracking-tighter">VTM FIFA ULTIMATE</h1>
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">Local Storage Edition • Vercel Ready</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">Local Storage Edition • Validated</p>
             </div>
             <div class="flex flex-wrap justify-center gap-2">
                 <button @click="fillRandomPouleScores" x-show="matchesByRound.length > 0 && koRounds.length === 0" class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[10px] font-black uppercase hover:bg-indigo-500/20 transition">🎲 Poule Sim</button>
@@ -77,9 +77,9 @@
                     <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
                         <div class="flex flex-col">
                             <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Wedstrijden p.p.</span>
-                            <input type="number" x-model.number="playsPerPlayer" class="w-12 bg-transparent text-xl font-black outline-none text-indigo-400">
+                            <input type="number" x-model.number="playsPerPlayer" class="w-12 bg-transparent text-xl font-black outline-none text-indigo-400 text-center">
                         </div>
-                        <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-black uppercase text-xs hover:bg-indigo-500 transition">Start Poule</button>
+                        <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-black uppercase text-xs hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">Start Poule</button>
                     </div>
                 </div>
 
@@ -108,7 +108,7 @@
                         </div>
                     </template>
                 </div>
-                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-12 bg-indigo-600 py-5 rounded-2xl font-black text-xl hover:bg-indigo-500 transition shadow-2xl uppercase italic tracking-widest">🏆 Naar Best 16 Bracket</button>
+                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-12 bg-indigo-600 py-5 rounded-2xl font-black text-xl hover:bg-indigo-500 transition shadow-2xl shadow-indigo-500/20 uppercase italic tracking-widest">🏆 Naar Best 16 Bracket</button>
             </main>
         </div>
 
@@ -118,7 +118,7 @@
                     <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] bg-slate-900 py-3 rounded-xl border border-slate-800" x-text="round.name"></h3>
                     <div class="flex flex-col justify-around flex-1 gap-6">
                         <template x-for="(m, mIdx) in round.matches" :key="mIdx">
-                            <div class="card-dark p-5 relative border-l-4 border-l-indigo-600 shadow-xl">
+                            <div class="card-dark p-5 relative border-l-4 border-l-indigo-600 shadow-xl group">
                                 <div class="flex flex-col gap-3">
                                     <div class="flex justify-between items-center">
                                         <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 1) ? 'winner' : 'text-slate-400'" x-text="m.p1"></span>
@@ -129,7 +129,7 @@
                                         <input type="number" x-model.number="m.s2" @input="advanceWinner(rIdx, mIdx)" class="w-12 bg-slate-950 text-center rounded-lg border border-slate-700 font-black py-1.5 focus:border-indigo-500 outline-none text-indigo-400">
                                     </div>
                                 </div>
-                                <div x-show="m.p2 === 'BYE'" class="absolute -top-3 -right-2 bg-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">BYE</div>
+                                <div x-show="m.p2 === 'BYE'" class="absolute -top-3 -right-2 bg-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-green-500/20">Vrijstelling</div>
                             </div>
                         </template>
                     </div>
@@ -168,19 +168,49 @@
                 newPlayer: '', playsPerPlayer: 6, showModal: false, activeMatch: null, modalS1: 0, modalS2: 0,
 
                 init() {
-                    const saved = JSON.parse(localStorage.getItem('vtm_fifa_final') || '{"players":[], "matchesByRound":[], "koRounds":[]}');
-                    this.players = saved.players;
-                    this.matchesByRound = saved.matchesByRound;
-                    this.koRounds = saved.koRounds;
-                    this.updateStandings(false);
+                    const saved = localStorage.getItem('vtm_tournament_data');
+                    if (saved) {
+                        try {
+                            const data = JSON.parse(saved);
+                            this.players = data.players || [];
+                            this.matchesByRound = data.matchesByRound || [];
+                            this.koRounds = data.koRounds || [];
+                            this.updateStandings(false);
+                        } catch (e) {
+                            console.error("Fout bij laden van data:", e);
+                        }
+                    }
                 },
 
                 save() {
-                    localStorage.setItem('vtm_fifa_final', JSON.stringify({
-                        players: this.players,
-                        matchesByRound: this.matchesByRound,
-                        koRounds: this.koRounds
-                    }));
+                    const data = { players: this.players, matchesByRound: this.matchesByRound, koRounds: this.koRounds };
+                    localStorage.setItem('vtm_tournament_data', JSON.stringify(data));
+                },
+
+                exportData() {
+                    const data = localStorage.getItem('vtm_tournament_data');
+                    if (!data || data === '{}') return alert("Er is nog geen data om te exporteren!");
+                    
+                    const el = document.createElement('textarea');
+                    el.value = data;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    alert("Toernooi-data is gekopieerd naar je klembord!");
+                },
+
+                importData() {
+                    const d = prompt("Plak de geëxporteerde code hier:");
+                    if (d && d.trim().length > 0) {
+                        try {
+                            JSON.parse(d); 
+                            localStorage.setItem('vtm_tournament_data', d);
+                            window.location.reload(true); 
+                        } catch (e) {
+                            alert("Fout: De geplakte code is niet geldig.");
+                        }
+                    }
                 },
 
                 addPlayer() { if(this.newPlayer) { this.players.push(this.newPlayer); this.newPlayer=''; this.save(); this.updateStandings(); }},
@@ -188,31 +218,53 @@
                 loadDummies() { this.players = ["Kylian", "Erling", "Lionel", "Cristiano", "Kevin", "Virgil", "Jude", "Bukayo", "Vini", "Pedri", "Harry", "Mo", "Luka", "Robert", "Bruno", "Antoine"]; this.save(); this.updateStandings(); },
 
                 generateStrictSchema() {
-                    if (this.players.length < 4) return alert("Minimaal 4 nodig!");
-                    this.matchesByRound = []; this.koRounds = [];
+                    if (this.players.length < 4) return alert("Minimaal 4 spelers nodig!");
+                    
+                    this.matchesByRound = []; 
+                    this.koRounds = [];
                     let partnerHist = {}; this.players.forEach(p => partnerHist[p] = new Set());
                     let pCounts = {}; this.players.forEach(p => pCounts[p] = 0);
                     let safety = 0;
 
-                    while (Object.values(pCounts).some(c => c < this.playsPerPlayer) && safety < 400) {
+                    // Genereer wedstrijden tot iedereen aan zijn quotum zit
+                    while (Object.values(pCounts).some(c => c < this.playsPerPlayer) && safety < 1000) {
                         safety++;
                         let roundMatches = []; let inRound = new Set();
-                        for (let m = 0; m < 2; m++) { // MAX 2 PER RONDE
+                        
+                        for (let m = 0; m < 2; m++) { // MAX 2 wedstrijden per ronde
                             let pool = this.players.filter(p => !inRound.has(p) && pCounts[p] < this.playsPerPlayer).sort(() => Math.random() - 0.5);
                             if (pool.length < 4) break;
+                            
                             let p1 = pool[0];
                             let p2 = pool.slice(1).find(c => !partnerHist[p1].has(c)) || pool[1];
                             let opps = pool.filter(p => p !== p1 && p !== p2);
                             if (opps.length < 2) break;
+                            
                             let p3 = opps[0], p4 = opps.slice(1).find(c => !partnerHist[p3].has(c)) || opps[1];
 
                             [p1,p2,p3,p4].forEach(p => { inRound.add(p); pCounts[p]++; });
                             partnerHist[p1].add(p2); partnerHist[p2].add(p1);
                             partnerHist[p3].add(p4); partnerHist[p4].add(p3);
+                            
                             roundMatches.push({ id: Math.random().toString(36).substr(2, 9), p1, p2, p3, p4, s1: null, s2: null });
                         }
                         if (roundMatches.length > 0) this.matchesByRound.push(roundMatches);
                     }
+
+                    // VALIDATIE CHECK (Gevraagd door gebruiker)
+                    let afwijkend = [];
+                    for (let speler in pCounts) {
+                        if (pCounts[speler] !== this.playsPerPlayer) {
+                            afwijkend.push(`${speler} (${pCounts[speler]}x)`);
+                        }
+                    }
+
+                    if (afwijkend.length > 0) {
+                        alert(`LET OP: Het is wiskundig niet gelukt om iedereen exact ${this.playsPerPlayer} keer te laten spelen (vanwege max 2 potjes per ronde of ongelijk aantal spelers).\n\nSpelers met afwijkend aantal:\n${afwijkend.join(', ')}\n\nTip: Klik nogmaals op Genereer om het opnieuw te proberen of pas het aantal spelers aan.`);
+                    } else {
+                        alert(`SUCCES! Het schema is perfect. Iedereen speelt exact ${this.playsPerPlayer} wedstrijden.`);
+                    }
+
                     this.updateStandings();
                 },
 
@@ -233,9 +285,9 @@
                 startKnockout() {
                     const top16 = this.standings.slice(0, 16).map(s => s.name);
                     let rounds = [
-                        { name: "Achtste Finale", matches: [] },
-                        { name: "Kwartfinale", matches: Array.from({length: 4}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
-                        { name: "Halve Finale", matches: Array.from({length: 2}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
+                        { name: "Achtste Finales", matches: [] },
+                        { name: "Kwartfinales", matches: Array.from({length: 4}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
+                        { name: "Halve Finales", matches: Array.from({length: 2}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
                         { name: "Finale", matches: Array.from({length: 1}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) }
                     ];
                     for(let i=0; i<8; i++) {
@@ -262,9 +314,7 @@
                 openScoreModal(m) { this.activeMatch = m; this.modalS1 = m.s1 ?? 0; this.modalS2 = m.s2 ?? 0; this.showModal = true; },
                 saveScore() { this.activeMatch.s1 = this.modalS1; this.activeMatch.s2 = this.modalS2; this.showModal = false; this.updateStandings(); },
                 fillRandomPouleScores() { this.matchesByRound.forEach(r => r.forEach(m => { m.s1 = Math.floor(Math.random()*4); m.s2 = Math.floor(Math.random()*4); })); this.updateStandings(); },
-                resetTournament() { if(confirm("Echt alles wissen?")) { localStorage.clear(); location.reload(); }},
-                exportData() { prompt("Kopieer deze data voor export:", localStorage.getItem('vtm_fifa_final')); },
-                importData() { const d = prompt("Plak de geëxporteerde data hier:"); if(d) { localStorage.setItem('vtm_fifa_final', d); location.reload(); }}
+                resetTournament() { if(confirm("Echt alles wissen?")) { localStorage.removeItem('vtm_tournament_data'); location.reload(); }}
             }
         }
     </script>
