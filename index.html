@@ -23,13 +23,13 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div class="text-center md:text-left">
                 <h1 class="text-5xl font-extrabold text-indigo-500 italic tracking-tighter">VTM FIFA ULTIMATE</h1>
-                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">Local Storage Edition • Validated</p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-2">Local Storage Edition • Validated Seeding</p>
             </div>
             <div class="flex flex-wrap justify-center gap-2">
-                <button @click="fillRandomPouleScores" x-show="matchesByRound.length > 0 && koRounds.length === 0" class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[10px] font-black uppercase hover:bg-indigo-500/20 transition">🎲 Poule Sim</button>
-                <button @click="exportData" class="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase hover:bg-blue-500/20 transition">💾 Export</button>
-                <button @click="importData" class="px-4 py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase hover:bg-amber-500/20 transition">📂 Import</button>
-                <button @click="resetTournament" class="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[10px] font-black uppercase hover:bg-red-500/20 transition">Reset</button>
+                <button @click="fillRandomPouleScores" x-show="matchesByRound.length > 0 && koRounds.length === 0" class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-[10px] font-black uppercase hover:bg-indigo-500/20 transition tracking-widest">🎲 Poule Sim</button>
+                <button @click="exportData" class="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase hover:bg-blue-500/20 transition tracking-widest">💾 Export</button>
+                <button @click="importData" class="px-4 py-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-[10px] font-black uppercase hover:bg-amber-500/20 transition tracking-widest">📂 Import</button>
+                <button @click="resetTournament" class="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[10px] font-black uppercase hover:bg-red-500/20 transition tracking-widest">Reset</button>
             </div>
         </header>
 
@@ -45,25 +45,25 @@
                     <div class="grid grid-cols-2 gap-2 mt-4 max-h-48 overflow-y-auto pr-2">
                         <template x-for="(p, i) in players" :key="i">
                             <div class="bg-slate-900 p-2 px-3 rounded-lg flex justify-between items-center text-xs border border-slate-800">
-                                <span class="font-bold truncate" x-text="p"></span>
-                                <button @click="removePlayer(i)" class="text-slate-600 hover:text-red-500">×</button>
+                                <span class="font-bold truncate uppercase tracking-tighter" x-text="p"></span>
+                                <button @click="removePlayer(i)" class="text-slate-600 hover:text-red-500 font-black text-sm">×</button>
                             </div>
                         </template>
                     </div>
                 </section>
 
                 <section class="card-dark p-6 border-t-4 border-indigo-600 shadow-2xl">
-                    <h2 class="text-xl font-black mb-6 italic text-indigo-400 uppercase">📊 Poule Stand</h2>
+                    <h2 class="text-xl font-black mb-6 italic text-indigo-400 uppercase tracking-tighter text-center">📊 Stand</h2>
                     <div class="space-y-2">
                         <template x-for="(s, i) in standings" :key="s.name">
                             <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900 border border-slate-800 transition hover:bg-slate-800">
                                 <div class="flex items-center gap-3">
-                                    <span class="text-[10px] font-black text-slate-600" x-text="i+1"></span>
-                                    <span class="text-sm font-black" x-text="s.name"></span>
+                                    <span class="text-[10px] font-black text-slate-600 w-4" x-text="i+1"></span>
+                                    <span class="text-sm font-black uppercase tracking-tight" x-text="s.name"></span>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <span class="text-[10px] font-bold text-slate-500" x-text="s.played + 'G'"></span>
-                                    <span class="text-xl font-black text-indigo-500" x-text="s.points"></span>
+                                    <span class="text-xl font-black text-indigo-500 w-6 text-right" x-text="s.points"></span>
                                 </div>
                             </div>
                         </template>
@@ -73,13 +73,13 @@
 
             <main class="lg:col-span-8 card-dark p-6 md:p-8 shadow-2xl">
                 <div class="flex flex-wrap justify-between items-center mb-10 gap-4">
-                    <h2 class="text-3xl font-black italic uppercase">🗓️ Speelschema</h2>
+                    <h2 class="text-3xl font-black italic uppercase tracking-tighter">🗓️ Poule Schema</h2>
                     <div class="flex items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
                         <div class="flex flex-col">
-                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Wedstrijden p.p.</span>
-                            <input type="number" x-model.number="playsPerPlayer" class="w-12 bg-transparent text-xl font-black outline-none text-indigo-400 text-center">
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Potten p.p.</span>
+                            <input type="number" x-model.number="playsPerPlayer" min="1" max="15" class="w-12 bg-transparent text-xl font-black outline-none text-indigo-400 text-center">
                         </div>
-                        <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-black uppercase text-xs hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">Start Poule</button>
+                        <button @click="generateStrictSchema" class="bg-indigo-600 px-8 py-3 rounded-xl font-black uppercase text-xs hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">Genereer</button>
                     </div>
                 </div>
 
@@ -91,14 +91,14 @@
                                 <template x-for="(m, mIdx) in round" :key="m.id">
                                     <div class="match-card p-5">
                                         <div class="flex items-center justify-between gap-2 mb-4">
-                                            <div class="w-2/5 text-center text-[11px] font-black leading-tight text-slate-300">
+                                            <div class="w-2/5 text-center text-[10px] font-bold leading-tight text-slate-300 uppercase">
                                                 <p x-text="m.p1"></p><p x-text="m.p2"></p>
                                             </div>
                                             <div class="flex gap-2 bg-slate-900 px-4 py-1.5 rounded-xl border border-slate-800 cursor-pointer hover:border-indigo-500 transition" @click="openScoreModal(m)">
-                                                <span class="text-2xl font-black text-indigo-500" x-text="m.s1 ?? '-'"></span>
-                                                <span class="text-2xl font-black text-indigo-500" x-text="m.s2 ?? '-'"></span>
+                                                <span class="text-2xl font-black text-indigo-500" x-text="m.s1 !== null ? m.s1 : '-'"></span>
+                                                <span class="text-2xl font-black text-indigo-500" x-text="m.s2 !== null ? m.s2 : '-'"></span>
                                             </div>
-                                            <div class="w-2/5 text-center text-[11px] font-black leading-tight text-slate-500 border-l border-slate-800">
+                                            <div class="w-2/5 text-center text-[10px] font-bold leading-tight text-slate-500 border-l border-slate-800 uppercase">
                                                 <p x-text="m.p3"></p><p x-text="m.p4"></p>
                                             </div>
                                         </div>
@@ -108,28 +108,28 @@
                         </div>
                     </template>
                 </div>
-                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-12 bg-indigo-600 py-5 rounded-2xl font-black text-xl hover:bg-indigo-500 transition shadow-2xl shadow-indigo-500/20 uppercase italic tracking-widest">🏆 Naar Best 16 Bracket</button>
+                <button x-show="matchesByRound.length > 0" @click="startKnockout" class="w-full mt-12 bg-indigo-600 py-5 rounded-2xl font-black text-xl hover:bg-indigo-500 transition shadow-2xl uppercase italic tracking-widest">🏆 Start Finale Bracket</button>
             </main>
         </div>
 
-        <div x-show="koRounds.length > 0" x-cloak class="flex flex-col md:flex-row gap-6 overflow-x-auto pb-20 mt-4 h-full min-h-[700px]">
+        <div x-show="koRounds.length > 0" x-cloak class="flex flex-col md:flex-row gap-6 overflow-x-auto pb-20 mt-4 h-full min-h-[750px]">
             <template x-for="(round, rIdx) in koRounds" :key="rIdx">
                 <div class="bracket-col flex flex-col justify-around gap-10">
-                    <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] bg-slate-900 py-3 rounded-xl border border-slate-800" x-text="round.name"></h3>
+                    <h3 class="text-center text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] bg-slate-900 py-3 rounded-xl border border-slate-800 shadow-lg" x-text="round.name"></h3>
                     <div class="flex flex-col justify-around flex-1 gap-6">
                         <template x-for="(m, mIdx) in round.matches" :key="mIdx">
-                            <div class="card-dark p-5 relative border-l-4 border-l-indigo-600 shadow-xl group">
+                            <div class="card-dark p-5 relative border-l-4 border-l-indigo-600 shadow-xl transition-all hover:border-indigo-500">
                                 <div class="flex flex-col gap-3">
                                     <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 1) ? 'winner' : 'text-slate-400'" x-text="m.p1"></span>
+                                        <span class="text-[11px] font-black truncate max-w-[130px] uppercase tracking-tight" :class="isWinner(m, 1) ? 'winner' : 'text-slate-400'" x-text="m.p1"></span>
                                         <input type="number" x-model.number="m.s1" @input="advanceWinner(rIdx, mIdx)" class="w-12 bg-slate-950 text-center rounded-lg border border-slate-700 font-black py-1.5 focus:border-indigo-500 outline-none text-indigo-400">
                                     </div>
                                     <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black truncate max-w-[120px]" :class="isWinner(m, 2) ? 'winner' : 'text-slate-400'" x-text="m.p2"></span>
+                                        <span class="text-[11px] font-black truncate max-w-[130px] uppercase tracking-tight" :class="isWinner(m, 2) ? 'winner' : 'text-slate-400'" x-text="m.p2"></span>
                                         <input type="number" x-model.number="m.s2" @input="advanceWinner(rIdx, mIdx)" class="w-12 bg-slate-950 text-center rounded-lg border border-slate-700 font-black py-1.5 focus:border-indigo-500 outline-none text-indigo-400">
                                     </div>
                                 </div>
-                                <div x-show="m.p2 === 'BYE'" class="absolute -top-3 -right-2 bg-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-green-500/20">Vrijstelling</div>
+                                <div x-show="m.p2 === 'BYE'" class="absolute -top-3 -right-2 bg-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg">Vrijstelling</div>
                             </div>
                         </template>
                     </div>
@@ -138,24 +138,24 @@
         </div>
 
         <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md">
-            <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl">
+            <div class="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl" @click.away="showModal = false">
                 <p class="text-center text-indigo-500 font-black text-[10px] uppercase tracking-[0.4em] mb-10">Uitslag Invoeren</p>
                 <div class="flex items-center justify-around mb-12">
-                    <div class="text-center font-black text-sm w-1/3">
+                    <div class="text-center font-black text-xs w-1/3 uppercase">
                         <p x-text="activeMatch?.p1"></p><p x-text="activeMatch?.p2"></p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <input type="number" x-model.number="modalS1" class="w-16 h-16 bg-slate-800 border-2 border-indigo-500/30 rounded-2xl text-center text-3xl font-black outline-none focus:border-indigo-500 transition">
+                        <input type="number" x-model.number="modalS1" class="w-16 h-16 bg-slate-800 border-2 border-indigo-500/30 rounded-2xl text-center text-3xl font-black outline-none focus:border-indigo-500 transition text-white">
                         <span class="font-black text-2xl text-slate-700">/</span>
-                        <input type="number" x-model.number="modalS2" class="w-16 h-16 bg-slate-800 border-2 border-indigo-500/30 rounded-2xl text-center text-3xl font-black outline-none focus:border-indigo-500 transition">
+                        <input type="number" x-model.number="modalS2" class="w-16 h-16 bg-slate-800 border-2 border-indigo-500/30 rounded-2xl text-center text-3xl font-black outline-none focus:border-indigo-500 transition text-white">
                     </div>
-                    <div class="text-center font-black text-sm w-1/3 text-slate-500">
+                    <div class="text-center font-black text-xs w-1/3 text-slate-500 uppercase">
                         <p x-text="activeMatch?.p3"></p><p x-text="activeMatch?.p4"></p>
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <button @click="saveScore" class="flex-1 bg-indigo-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition">Bevestig</button>
-                    <button @click="showModal = false" class="px-6 py-4 rounded-2xl font-bold text-slate-500 bg-slate-800">Sluit</button>
+                    <button @click="saveScore" class="flex-1 bg-indigo-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg hover:bg-indigo-500 transition text-white">Bevestig</button>
+                    <button @click="showModal = false" class="px-6 py-4 rounded-2xl font-bold text-slate-500 bg-slate-800 hover:bg-slate-700 transition">Sluit</button>
                 </div>
             </div>
         </div>
@@ -176,9 +176,7 @@
                             this.matchesByRound = data.matchesByRound || [];
                             this.koRounds = data.koRounds || [];
                             this.updateStandings(false);
-                        } catch (e) {
-                            console.error("Fout bij laden van data:", e);
-                        }
+                        } catch (e) { console.error("Data kon niet worden geladen.", e); }
                     }
                 },
 
@@ -189,89 +187,63 @@
 
                 exportData() {
                     const data = localStorage.getItem('vtm_tournament_data');
-                    if (!data || data === '{}') return alert("Er is nog geen data om te exporteren!");
-                    
-                    const el = document.createElement('textarea');
-                    el.value = data;
-                    document.body.appendChild(el);
-                    el.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(el);
-                    alert("Toernooi-data is gekopieerd naar je klembord!");
+                    if (!data || data === '{}') return alert("Geen actieve data om te exporteren!");
+                    const el = document.createElement('textarea'); el.value = data; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+                    alert("Geëxporteerde code is gekopieerd naar klembord!");
                 },
 
                 importData() {
                     const d = prompt("Plak de geëxporteerde code hier:");
-                    if (d && d.trim().length > 0) {
-                        try {
-                            JSON.parse(d); 
-                            localStorage.setItem('vtm_tournament_data', d);
-                            window.location.reload(true); 
-                        } catch (e) {
-                            alert("Fout: De geplakte code is niet geldig.");
-                        }
+                    if (d && d.trim().length > 0) { 
+                        try { JSON.parse(d); localStorage.setItem('vtm_tournament_data', d); window.location.reload(); } 
+                        catch (e) { alert("Fout: Ongeldige code."); } 
                     }
                 },
 
-                addPlayer() { if(this.newPlayer) { this.players.push(this.newPlayer); this.newPlayer=''; this.save(); this.updateStandings(); }},
+                addPlayer() { if(this.newPlayer) { this.players.push(this.newPlayer.trim()); this.newPlayer=''; this.save(); this.updateStandings(); }},
                 removePlayer(i) { this.players.splice(i, 1); this.save(); this.updateStandings(); },
                 loadDummies() { this.players = ["Kylian", "Erling", "Lionel", "Cristiano", "Kevin", "Virgil", "Jude", "Bukayo", "Vini", "Pedri", "Harry", "Mo", "Luka", "Robert", "Bruno", "Antoine"]; this.save(); this.updateStandings(); },
 
                 generateStrictSchema() {
-                    if (this.players.length < 4) return alert("Minimaal 4 spelers nodig!");
-                    
-                    this.matchesByRound = []; 
-                    this.koRounds = [];
+                    if (this.players.length < 4) return alert("Je hebt minimaal 4 spelers nodig!");
+                    this.matchesByRound = []; this.koRounds = [];
                     let partnerHist = {}; this.players.forEach(p => partnerHist[p] = new Set());
                     let pCounts = {}; this.players.forEach(p => pCounts[p] = 0);
                     let safety = 0;
 
-                    // Genereer wedstrijden tot iedereen aan zijn quotum zit
                     while (Object.values(pCounts).some(c => c < this.playsPerPlayer) && safety < 1000) {
                         safety++;
                         let roundMatches = []; let inRound = new Set();
-                        
-                        for (let m = 0; m < 2; m++) { // MAX 2 wedstrijden per ronde
+                        for (let m = 0; m < 2; m++) { // MAX 2 WEDSTRIJDEN PER RONDE
                             let pool = this.players.filter(p => !inRound.has(p) && pCounts[p] < this.playsPerPlayer).sort(() => Math.random() - 0.5);
                             if (pool.length < 4) break;
-                            
                             let p1 = pool[0];
                             let p2 = pool.slice(1).find(c => !partnerHist[p1].has(c)) || pool[1];
-                            let opps = pool.filter(p => p !== p1 && p !== p2);
-                            if (opps.length < 2) break;
-                            
-                            let p3 = opps[0], p4 = opps.slice(1).find(c => !partnerHist[p3].has(c)) || opps[1];
+                            let remaining = pool.filter(p => p !== p1 && p !== p2);
+                            if (remaining.length < 2) break;
+                            let p3 = remaining[0], p4 = remaining.slice(1).find(c => !partnerHist[p3].has(c)) || remaining[1];
 
                             [p1,p2,p3,p4].forEach(p => { inRound.add(p); pCounts[p]++; });
                             partnerHist[p1].add(p2); partnerHist[p2].add(p1);
                             partnerHist[p3].add(p4); partnerHist[p4].add(p3);
-                            
                             roundMatches.push({ id: Math.random().toString(36).substr(2, 9), p1, p2, p3, p4, s1: null, s2: null });
                         }
                         if (roundMatches.length > 0) this.matchesByRound.push(roundMatches);
                     }
 
-                    // VALIDATIE CHECK (Gevraagd door gebruiker)
+                    // VALIDATIE CHECK VOOR DE GEBRUIKER
                     let afwijkend = [];
-                    for (let speler in pCounts) {
-                        if (pCounts[speler] !== this.playsPerPlayer) {
-                            afwijkend.push(`${speler} (${pCounts[speler]}x)`);
-                        }
-                    }
-
-                    if (afwijkend.length > 0) {
-                        alert(`LET OP: Het is wiskundig niet gelukt om iedereen exact ${this.playsPerPlayer} keer te laten spelen (vanwege max 2 potjes per ronde of ongelijk aantal spelers).\n\nSpelers met afwijkend aantal:\n${afwijkend.join(', ')}\n\nTip: Klik nogmaals op Genereer om het opnieuw te proberen of pas het aantal spelers aan.`);
-                    } else {
-                        alert(`SUCCES! Het schema is perfect. Iedereen speelt exact ${this.playsPerPlayer} wedstrijden.`);
-                    }
-
+                    for (let speler in pCounts) { if (pCounts[speler] !== this.playsPerPlayer) afwijkend.push(`${speler} (${pCounts[speler]}x)`); }
+                    if (afwijkend.length > 0) alert(`Melding: Vanwege wiskundige beperkingen (max 2 potjes per ronde) was het onmogelijk iedereen exact ${this.playsPerPlayer}x te laten spelen.\n\nAfwijkingen:\n${afwijkend.join(', ')}\n\nTip: Klik nog eens op Genereer.`);
+                    else alert(`Succes! Het schema is perfect berekend. Iedereen speelt exact ${this.playsPerPlayer} wedstrijden.`);
+                    
                     this.updateStandings();
                 },
 
                 updateStandings(shouldSave = true) {
                     let stats = {}; this.players.forEach(p => stats[p] = { name: p, points: 0, played: 0 });
                     this.matchesByRound.forEach(r => r.forEach(m => {
-                        if (m.s1 !== null) {
+                        if (m.s1 !== null && m.s2 !== null && m.s1 !== "" && m.s2 !== "") {
                             [m.p1, m.p2, m.p3, m.p4].forEach(p => stats[p].played++);
                             if (m.s1 > m.s2) { stats[m.p1].points += 3; stats[m.p2].points += 3; }
                             else if (m.s2 > m.s1) { stats[m.p3].points += 3; stats[m.p4].points += 3; }
@@ -290,18 +262,26 @@
                         { name: "Halve Finales", matches: Array.from({length: 2}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) },
                         { name: "Finale", matches: Array.from({length: 1}, () => ({ p1: 'TBD', p2: 'TBD', s1: null, s2: null })) }
                     ];
-                    for(let i=0; i<8; i++) {
-                        let p1 = top16[i] || 'TBD'; let p2 = top16[15-i] || 'BYE';
+
+                    // SEEDING LOGICA: 1 en 2 zover mogelijk uit elkaar
+                    const seedingIndices = [0, 7, 4, 3, 2, 5, 6, 1];
+
+                    seedingIndices.forEach(idx => {
+                        let p1 = top16[idx] || 'TBD';
+                        let p2 = top16[15 - idx] || 'BYE';
+                        if (idx >= top16.length) { p1 = 'TBD'; p2 = 'TBD'; }
+
                         rounds[0].matches.push({ p1, p2, s1: p2 === 'BYE' ? 1 : null, s2: p2 === 'BYE' ? 0 : null });
-                    }
+                    });
+
                     this.koRounds = rounds;
-                    this.koRounds[0].matches.forEach((m, i) => this.advanceWinner(0, i)); // Handle BYEs
+                    this.koRounds[0].matches.forEach((m, i) => this.advanceWinner(0, i)); // BYE's direct doorvoeren
                     this.save();
                 },
 
                 advanceWinner(rIdx, mIdx) {
                     let m = this.koRounds[rIdx].matches[mIdx];
-                    if (m.s1 === null || m.s2 === null || m.s1 === m.s2) return;
+                    if (m.s1 === null || m.s2 === null || m.s1 === "" || m.s2 === "" || m.s1 === m.s2) return;
                     let winner = m.s1 > m.s2 ? m.p1 : m.p2;
                     if (this.koRounds[rIdx + 1]) {
                         let nextMatch = this.koRounds[rIdx + 1].matches[Math.floor(mIdx / 2)];
@@ -310,11 +290,35 @@
                     this.save();
                 },
 
-                isWinner(m, p) { return m.s1 !== null && m.s2 !== null && (p === 1 ? m.s1 > m.s2 : m.s2 > m.s1); },
-                openScoreModal(m) { this.activeMatch = m; this.modalS1 = m.s1 ?? 0; this.modalS2 = m.s2 ?? 0; this.showModal = true; },
-                saveScore() { this.activeMatch.s1 = this.modalS1; this.activeMatch.s2 = this.modalS2; this.showModal = false; this.updateStandings(); },
-                fillRandomPouleScores() { this.matchesByRound.forEach(r => r.forEach(m => { m.s1 = Math.floor(Math.random()*4); m.s2 = Math.floor(Math.random()*4); })); this.updateStandings(); },
-                resetTournament() { if(confirm("Echt alles wissen?")) { localStorage.removeItem('vtm_tournament_data'); location.reload(); }}
+                isWinner(m, p) { return m.s1 !== null && m.s2 !== null && m.s1 !== "" && m.s2 !== "" && (p === 1 ? m.s1 > m.s2 : m.s2 > m.s1); },
+                
+                openScoreModal(m) { 
+                    this.activeMatch = m; 
+                    this.modalS1 = m.s1 !== null ? m.s1 : 0; 
+                    this.modalS2 = m.s2 !== null ? m.s2 : 0; 
+                    this.showModal = true; 
+                },
+                
+                saveScore() { 
+                    this.activeMatch.s1 = this.modalS1; 
+                    this.activeMatch.s2 = this.modalS2; 
+                    this.showModal = false; 
+                    this.updateStandings(); 
+                },
+
+                fillRandomPouleScores() { 
+                    this.matchesByRound.forEach(r => r.forEach(m => { 
+                        if (m.s1 === null) { m.s1 = Math.floor(Math.random()*4); m.s2 = Math.floor(Math.random()*4); }
+                    })); 
+                    this.updateStandings(); 
+                },
+
+                resetTournament() { 
+                    if(confirm("Echt alles wissen? Dit kan niet ongedaan worden gemaakt.")) { 
+                        localStorage.removeItem('vtm_tournament_data'); 
+                        location.reload(); 
+                    }
+                }
             }
         }
     </script>
